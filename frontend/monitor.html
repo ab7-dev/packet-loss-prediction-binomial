@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>MONITOR // Live Telemetry & Control (CO3)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Fahkwang:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+    <div class="main-content">
+        <canvas id="noise" class="noise"></canvas>
+    </div>
+    <div class="hero__gradient"></div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- Glass Confirmation Modal for Reset Data -->
+    <div id="reset-modal-overlay" class="glass-modal-overlay" aria-hidden="true">
+        <div class="glass-modal-box">
+            <h3 class="glass-modal-title">CLEAR ALL COLLECTED DATA?</h3>
+            <p class="glass-modal-desc">
+                Clear all collected data? This will reset telemetry history and alerts on the backend while preserving your current running or paused state.
+            </p>
+            <div class="glass-modal-actions">
+                <button type="button" class="hero__button is--secondary" id="modal-btn-cancel">
+                    <div class="hero__button-t-contain">
+                        <span class="hero__button-text">CANCEL</span>
+                    </div>
+                    <div class="hero__button-icon">
+                        <svg class="btn-svg" viewBox="0 0 24 24" width="16" height="16" stroke="#1c1c1c" stroke-width="2.5" fill="none">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </div>
+                </button>
+                <button type="button" class="hero__button is--primary" id="modal-btn-confirm">
+                    <div class="hero__button-t-contain">
+                        <span class="hero__button-text">CONFIRM</span>
+                    </div>
+                    <div class="hero__button-icon">
+                        <svg class="btn-svg" viewBox="0 0 24 24" width="16" height="16" stroke="#1c1c1c" stroke-width="2.5" fill="none">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overflow">
+        <!-- Identical Top Navigation -->
+        <nav class="section is--nav">
+            <div class="container is--nav">
+                <a href="/" class="nav__logo-link">
+                    <span class="nav__logo-text">PACKET.LOSS</span>
+                </a>
+
+                <div class="mav__right">
+                    <div class="nav__menu">
+                        <div class="nav__line"></div>
+                        <a data-color="#f88cd4" href="/" class="nav__link">
+                            <p class="nav__link-text">HOME</p>
+                        </a>
+                        <a data-color="#f88cd4" href="/monitor.html" class="nav__link w--current">
+                            <p class="nav__link-text">MONITOR</p>
+                        </a>
+                        <a data-color="#f88cd4" href="/decision.html" class="nav__link">
+                            <p class="nav__link-text">DECISION</p>
+                        </a>
+                        <a data-color="#f88cd4" href="/model.html" class="nav__link">
+                            <p class="nav__link-text">MODEL</p>
+                        </a>
+                        <a data-color="#f88cd4" href="/validation.html" class="nav__link">
+                            <p class="nav__link-text">VALIDATION</p>
+                        </a>
+                    </div>
+
+                    <div id="nav-sim-badge" class="nav__sim-badge">
+                        <span class="nav__sim-dot"></span>
+                        <span>SIMULATION ON (<strong id="nav-sim-rate">0%</strong>)</span>
+                    </div>
+
+                    <a href="#" class="nav__icon" aria-label="Toggle Navigation Menu">
+                        <div class="nav__icon-line is--1"></div>
+                        <div class="nav__icon-line is--2"></div>
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Fullscreen Glass Overlay Menu -->
+        <div class="nav__overlay">
+            <div class="nav__overlay-menu">
+                <a href="/" class="nav__overlay-link">HOME</a>
+                <a href="/monitor.html" class="nav__overlay-link">MONITOR</a>
+                <a href="/decision.html" class="nav__overlay-link">DECISION</a>
+                <a href="/model.html" class="nav__overlay-link">MODEL</a>
+                <a href="/validation.html" class="nav__overlay-link">VALIDATION</a>
+            </div>
+        </div>
+
+        <main class="container is--inner">
+            <div class="inner-header">
+                <div>
+                    <h1 class="page-title">LIVE MONITOR</h1>
+                    <p style="color: rgba(238, 237, 242, 0.65); font-size: 1.15em; margin-top: 0.3em;">
+                        Continuous probe packet sampling, empirical loss estimation (p̂) and risk metering.
+                    </p>
+                </div>
+                <div class="co-chip">CO3 // LIVE MONITOR</div>
+            </div>
+
+            <!-- CONTROL PANEL GLASS CARD -->
+            <div class="glass-panel">
+                <div class="card-header-bar">
+                    <div class="card-title-group">
+                        <h3 class="panel-title" style="margin-bottom: 0;">PROBE CONFIGURATION & EXPERIMENT CONTROLS</h3>
+                        <span id="probing-state-badge" class="state-chip is--live">
+                            <span class="state-dot"></span>
+                            <span id="probing-state-text">LIVE</span>
+                        </span>
+                    </div>
+                    
+                    <div class="card-action-buttons">
+                        <!-- Primary Button: Pause / Resume -->
+                        <button type="button" id="btn-toggle-engine" class="hero__button is--primary" aria-label="Pause or Resume Probing">
+                            <div class="hero__button-t-contain">
+                                <span class="hero__button-text" id="toggle-engine-text">PAUSE PROBING</span>
+                            </div>
+                            <div class="hero__button-icon" id="toggle-engine-icon">
+                                <svg class="btn-svg" viewBox="0 0 24 24" width="18" height="18" fill="#1c1c1c">
+                                    <rect x="6" y="4" width="4" height="16" rx="1"/>
+                                    <rect x="14" y="4" width="4" height="16" rx="1"/>
+                                </svg>
+                            </div>
+                        </button>
+
+                        <!-- Secondary Button: Reset Data -->
+                        <button type="button" id="btn-reset-data" class="hero__button is--secondary" aria-label="Reset Collected Telemetry">
+                            <div class="hero__button-t-contain">
+                                <span class="hero__button-text">RESET DATA</span>
+                            </div>
+                            <div class="hero__button-icon">
+                                <svg class="btn-svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#1c1c1c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21.5 2v6h-6M21.5 8a10 10 0 1 0 2.5 6.5"/>
+                                </svg>
+                            </div>
+                        </button>
+
+                        <!-- Secondary Button: Export CSV -->
+                        <a href="/export" download="packet_loss_history.csv" class="hero__button is--secondary" id="btn-export-csv" aria-label="Export History CSV">
+                            <div class="hero__button-t-contain">
+                                <span class="hero__button-text">EXPORT CSV</span>
+                            </div>
+                            <div class="hero__button-icon">
+                                <svg class="btn-svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#1c1c1c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 3v13M5 10l7 7 7-7M3 21h18"/>
+                                </svg>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="controls-bar">
+                    <!-- Target Selector -->
+                    <div class="control-item">
+                        <label class="metric-label">Target Server</label>
+                        <select id="target-select" class="glass-select">
+                            <option value="8.8.8.8">8.8.8.8 (Google DNS)</option>
+                            <option value="1.1.1.1">1.1.1.1 (Cloudflare DNS)</option>
+                            <option value="google.com">google.com (Google Web)</option>
+                        </select>
+                    </div>
+
+                    <!-- Probes Per Window (n) Stepper -->
+                    <div class="control-item">
+                        <label class="metric-label">Probes Per Window (n)</label>
+                        <div class="concepts__contain" style="width: 100%; height: 3.4em; margin: 0;">
+                            <button type="button" class="concepts__button" id="ctrl-n-minus" style="width: 3.4em;"><span class="is--text">-</span></button>
+                            <h3 id="ctrl-n-val" style="color: var(--color-dark); font-size: 1.3em;">50</h3>
+                            <button type="button" class="concepts__button" id="ctrl-n-plus" style="width: 3.4em;"><span class="is--text">+</span></button>
+                        </div>
+                    </div>
+
+                    <!-- Alert Threshold (k) Stepper -->
+                    <div class="control-item">
+                        <label class="metric-label">Alert Threshold (k)</label>
+                        <div class="concepts__contain" style="width: 100%; height: 3.4em; margin: 0;">
+                            <button type="button" class="concepts__button" id="ctrl-k-minus" style="width: 3.4em;"><span class="is--text">-</span></button>
+                            <h3 id="ctrl-k-val" style="color: var(--color-dark); font-size: 1.3em;">3</h3>
+                            <button type="button" class="concepts__button" id="ctrl-k-plus" style="width: 3.4em;"><span class="is--text">+</span></button>
+                        </div>
+                    </div>
+
+                    <!-- Alpha Toggle Pills -->
+                    <div class="control-item">
+                        <label class="metric-label">Significance (α)</label>
+                        <div class="pills-group">
+                            <button type="button" class="alpha-btn" data-alpha="0.01">0.01</button>
+                            <button type="button" class="alpha-btn is--active" data-alpha="0.05">0.05</button>
+                            <button type="button" class="alpha-btn" data-alpha="0.10">0.10</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Artificial Loss Slider -->
+                <div style="margin-top: 1.8rem; padding-top: 1.4rem; border-top: 1px solid rgba(238, 237, 242, 0.1);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.6rem;">
+                        <label class="metric-label">Simulation Mode: Artificial Bernoulli Packet Drop</label>
+                        <span id="slider-rate-text" style="font-family: var(--font-accent); color: var(--color-pink); font-size: 1.2em;">0%</span>
+                    </div>
+                    <input type="range" min="0" max="100" value="0" id="sim-slider" style="width: 100%; accent-color: var(--color-pink); height: 8px; border-radius: 4px; cursor: pointer;"/>
+                    <div style="display: flex; gap: 0.6rem; margin-top: 0.8rem; flex-wrap: wrap;">
+                        <button type="button" class="quick-sim-btn" data-sim="0">0% (Live Line)</button>
+                        <button type="button" class="quick-sim-btn" data-sim="5">5% (Jitter)</button>
+                        <button type="button" class="quick-sim-btn" data-sim="15">15% (Congested)</button>
+                        <button type="button" class="quick-sim-btn" data-sim="30">30% (Severe Loss)</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIVE MONITOR & CHARTS -->
+            <div class="grid-2col">
+                <!-- Line Chart -->
+                <div class="glass-panel" style="margin-bottom: 0;">
+                    <h3 class="panel-title">Losses Per Window Over Time</h3>
+                    <div style="position: relative; height: 320px; width: 100%;">
+                        <canvas id="lossChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Risk Meter & Parameter Cards -->
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <!-- Next Window Risk Meter -->
+                    <div class="glass-panel" style="margin-bottom: 0; text-align: center;">
+                        <h3 class="panel-title" style="margin-bottom: 0.8rem;">Next-Window Risk P(X &gt; k)</h3>
+                        <div style="display: flex; justify-content: center; align-items: center; padding: 1.2rem 0;">
+                            <div id="risk-gauge" style="width: 140px; height: 140px; border-radius: 50%; background: conic-gradient(var(--color-safe) 0%, rgba(255,255,255,0.08) 0%); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 25px rgba(0,0,0,0.5);">
+                                <div style="width: 110px; height: 110px; border-radius: 50%; background: #0d0628; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(238,237,242,0.15);">
+                                    <span id="risk-val" style="font-family: var(--font-display); font-size: 1.7rem; font-weight: 700; color: #fff;">0.0%</span>
+                                    <span style="font-family: var(--font-mono); font-size: 0.75rem; color: rgba(238,237,242,0.6);">TAIL RISK</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="risk-status-label" style="font-family: var(--font-accent); font-size: 1.1rem; color: var(--color-lime);">NORMAL RISK (≤ α)</div>
+                    </div>
+
+                    <!-- Parameters Mini Tiles -->
+                    <div class="glass-panel" style="margin-bottom: 0;">
+                        <h3 class="panel-title" style="margin-bottom: 0.8rem;">Probability Parameters</h3>
+                        <div style="display: flex; flex-direction: column; gap: 0.8rem; font-size: 0.95rem;">
+                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(238,237,242,0.08); padding-bottom: 0.4rem;">
+                                <span style="color: rgba(238,237,242,0.65);">Window Lost / Sent:</span>
+                                <strong id="param-lost-sent" style="font-family: var(--font-mono);">0 / 50</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(238,237,242,0.08); padding-bottom: 0.4rem;">
+                                <span style="color: rgba(238,237,242,0.65);">Estimated Proportion (p̂):</span>
+                                <strong id="param-p-hat" style="font-family: var(--font-mono); color: var(--color-lime);">0.00%</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(238,237,242,0.08); padding-bottom: 0.4rem;">
+                                <span style="color: rgba(238,237,242,0.65);">Wilson 95% CI:</span>
+                                <strong id="param-ci" style="font-family: var(--font-mono);">[0.00%, 0.00%]</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: rgba(238,237,242,0.65);">Round-Trip Latency:</span>
+                                <strong id="param-rtt" style="font-family: var(--font-mono);">-- ms</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+
+    <script src="api.js"></script>
+    <script src="nav.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Chart Setup
+            const ctx = document.getElementById('lossChart').getContext('2d');
+            const grad = ctx.createLinearGradient(0, 0, 0, 280);
+            grad.addColorStop(0, 'rgba(92, 49, 255, 0.4)');
+            grad.addColorStop(1, 'rgba(92, 49, 255, 0.0)');
+
+            const lossChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Lost Packets',
+                            data: [],
+                            borderColor: '#def141',
+                            borderWidth: 2.5,
+                            backgroundColor: grad,
+                            fill: true,
+                            tension: 0.35,
+                            pointBackgroundColor: '#def141',
+                            pointRadius: 4,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Loss %',
+                            data: [],
+                            borderColor: '#f88cd4',
+                            borderWidth: 1.8,
+                            borderDash: [5, 4],
+                            fill: false,
+                            pointRadius: 0,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#eeedf2' } },
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#def141' } },
+                        y1: { position: 'right', beginAtZero: true, max: 100, grid: { drawOnChartArea: false }, ticks: { color: '#f88cd4' } }
+                    },
+                    plugins: { legend: { labels: { color: '#eeedf2', font: { family: 'DM Sans' } } } }
+                }
+            });
+
+            // DOM References
+            const targetSelect = document.getElementById('target-select');
+            const ctrlNVal = document.getElementById('ctrl-n-val');
+            const ctrlKVal = document.getElementById('ctrl-k-val');
+            const simSlider = document.getElementById('sim-slider');
+            const sliderRateText = document.getElementById('slider-rate-text');
+            const toggleEngineBtn = document.getElementById('btn-toggle-engine');
+            const toggleEngineText = document.getElementById('toggle-engine-text');
+            const toggleEngineIcon = document.getElementById('toggle-engine-icon');
+            const resetBtn = document.getElementById('btn-reset-data');
+            const alphaBtns = document.querySelectorAll('.alpha-btn');
+            const riskGauge = document.getElementById('risk-gauge');
+            const riskVal = document.getElementById('risk-val');
+            const riskStatusLabel = document.getElementById('risk-status-label');
+            const probingStateBadge = document.getElementById('probing-state-badge');
+            const probingStateText = document.getElementById('probing-state-text');
+
+            const paramLostSent = document.getElementById('param-lost-sent');
+            const paramPhat = document.getElementById('param-p-hat');
+            const paramCi = document.getElementById('param-ci');
+            const paramRtt = document.getElementById('param-rtt');
+
+            // Modal elements
+            const resetModalOverlay = document.getElementById('reset-modal-overlay');
+            const modalBtnCancel = document.getElementById('modal-btn-cancel');
+            const modalBtnConfirm = document.getElementById('modal-btn-confirm');
+
+            let currentConfig = { n: 50, k: 3, alpha: 0.05, sim_loss_rate: 0, is_running: true };
+
+            // Render Running / Paused State
+            const updateRunningUI = (isRunning) => {
+                currentConfig.is_running = isRunning;
+                if (isRunning) {
+                    toggleEngineText.textContent = "PAUSE PROBING";
+                    toggleEngineIcon.innerHTML = `
+                        <svg class="btn-svg" viewBox="0 0 24 24" width="18" height="18" fill="#1c1c1c">
+                            <rect x="6" y="4" width="4" height="16" rx="1"/>
+                            <rect x="14" y="4" width="4" height="16" rx="1"/>
+                        </svg>
+                    `;
+                    probingStateBadge.className = "state-chip is--live";
+                    probingStateText.textContent = "LIVE";
+                } else {
+                    toggleEngineText.textContent = "RESUME PROBING";
+                    toggleEngineIcon.innerHTML = `
+                        <svg class="btn-svg" viewBox="0 0 24 24" width="18" height="18" fill="#1c1c1c">
+                            <polygon points="6,4 20,12 6,20"/>
+                        </svg>
+                    `;
+                    probingStateBadge.className = "state-chip is--paused";
+                    probingStateText.textContent = "PAUSED";
+                }
+            };
+
+            // Immediately fetch /status on page load to restore running/paused state from backend
+            NetTelemetry.fetchStatus()
+                .then(statusData => {
+                    updateRunningUI(statusData.running);
+                })
+                .catch(err => {
+                    console.error("Error reading initial /status:", err);
+                });
+
+            // Pause / Resume Toggle Listener
+            toggleEngineBtn.addEventListener('click', async () => {
+                try {
+                    const nextState = !currentConfig.is_running;
+                    toggleEngineBtn.disabled = true;
+                    if (nextState) {
+                        await NetTelemetry.resume();
+                    } else {
+                        await NetTelemetry.pause();
+                    }
+                    updateRunningUI(nextState);
+                } catch (err) {
+                    console.error("Toggle probing error:", err);
+                } finally {
+                    toggleEngineBtn.disabled = false;
+                }
+            });
+
+            // Reset Confirmation Modal Handlers
+            resetBtn.addEventListener('click', () => {
+                resetModalOverlay.classList.add('is--open');
+                resetModalOverlay.setAttribute('aria-hidden', 'false');
+            });
+
+            modalBtnCancel.addEventListener('click', () => {
+                resetModalOverlay.classList.remove('is--open');
+                resetModalOverlay.setAttribute('aria-hidden', 'true');
+            });
+
+            resetModalOverlay.addEventListener('click', (e) => {
+                if (e.target === resetModalOverlay) {
+                    resetModalOverlay.classList.remove('is--open');
+                    resetModalOverlay.setAttribute('aria-hidden', 'true');
+                }
+            });
+
+            modalBtnConfirm.addEventListener('click', async () => {
+                try {
+                    modalBtnConfirm.disabled = true;
+                    await NetTelemetry.resetData();
+
+                    // Immediately clear UI elements to return to clean empty state without manual refresh
+                    lossChart.data.labels = [];
+                    lossChart.data.datasets[0].data = [];
+                    lossChart.data.datasets[1].data = [];
+                    lossChart.update();
+
+                    riskVal.textContent = "0.0%";
+                    riskGauge.style.background = `conic-gradient(var(--color-safe) 0%, rgba(255,255,255,0.08) 0%)`;
+                    riskStatusLabel.textContent = "NORMAL RISK (≤ α)";
+                    riskStatusLabel.style.color = "var(--color-lime)";
+
+                    paramLostSent.textContent = `0 / ${currentConfig.n}`;
+                    paramPhat.textContent = "0.00%";
+                    paramCi.textContent = "[0.00%, 0.00%]";
+                    paramRtt.textContent = "-- ms";
+
+                    resetModalOverlay.classList.remove('is--open');
+                    resetModalOverlay.setAttribute('aria-hidden', 'true');
+                } catch (err) {
+                    console.error("Reset confirm error:", err);
+                } finally {
+                    modalBtnConfirm.disabled = false;
+                }
+            });
+
+            // Controls listeners
+            targetSelect.addEventListener('change', () => {
+                NetTelemetry.sendConfig({ target: targetSelect.value });
+            });
+
+            document.getElementById('ctrl-n-plus').addEventListener('click', () => {
+                NetTelemetry.sendConfig({ n: Math.min(200, currentConfig.n + 10) });
+            });
+            document.getElementById('ctrl-n-minus').addEventListener('click', () => {
+                NetTelemetry.sendConfig({ n: Math.max(10, currentConfig.n - 10) });
+            });
+            document.getElementById('ctrl-k-plus').addEventListener('click', () => {
+                NetTelemetry.sendConfig({ k: Math.min(currentConfig.n, currentConfig.k + 1) });
+            });
+            document.getElementById('ctrl-k-minus').addEventListener('click', () => {
+                NetTelemetry.sendConfig({ k: Math.max(0, currentConfig.k - 1) });
+            });
+
+            alphaBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const a = parseFloat(btn.dataset.alpha);
+                    NetTelemetry.sendConfig({ alpha: a });
+                });
+            });
+
+            simSlider.addEventListener('input', (e) => {
+                sliderRateText.textContent = `${e.target.value}%`;
+            });
+            simSlider.addEventListener('change', (e) => {
+                NetTelemetry.sendConfig({ sim_loss_rate: parseFloat(e.target.value) });
+            });
+
+            document.querySelectorAll('.quick-sim-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const r = parseFloat(btn.dataset.sim);
+                    simSlider.value = r;
+                    sliderRateText.textContent = `${r}%`;
+                    NetTelemetry.sendConfig({ sim_loss_rate: r });
+                });
+            });
+
+            // Live Update Subscription
+            NetTelemetry.subscribe((data) => {
+                if (!data) return;
+                const cfg = data.config || {};
+                const stats = data.stats || {};
+                const charts = data.charts || {};
+                const latest = data.latest_window || {};
+
+                currentConfig.n = cfg.n || currentConfig.n;
+                currentConfig.k = cfg.k !== undefined ? cfg.k : currentConfig.k;
+                currentConfig.alpha = cfg.alpha || currentConfig.alpha;
+                currentConfig.sim_loss_rate = cfg.sim_loss_rate || 0;
+
+                ctrlNVal.textContent = currentConfig.n;
+                ctrlKVal.textContent = currentConfig.k;
+                simSlider.value = currentConfig.sim_loss_rate;
+                sliderRateText.textContent = `${currentConfig.sim_loss_rate}%`;
+                targetSelect.value = cfg.target || '8.8.8.8';
+
+                alphaBtns.forEach(btn => {
+                    const val = parseFloat(btn.dataset.alpha);
+                    btn.classList.toggle('is--active', Math.abs(val - currentConfig.alpha) < 0.001);
+                });
+
+                if (cfg.is_running !== undefined) {
+                    updateRunningUI(cfg.is_running);
+                }
+
+                // Telemetry parameters
+                paramLostSent.textContent = `${latest.lost || 0} / ${latest.sent || currentConfig.n}`;
+                paramPhat.textContent = `${(stats.p_hat_pct || 0).toFixed(2)}%`;
+                paramCi.textContent = `[${(stats.ci_lower_pct || 0).toFixed(2)}%, ${(stats.ci_upper_pct || 0).toFixed(2)}%]`;
+                paramRtt.textContent = latest.latency_ms !== null && latest.latency_ms !== undefined ? `${latest.latency_ms} ms` : '-- ms';
+
+                // Risk Meter
+                const riskPct = Math.min(100, Math.max(0, stats.p_gt_k_pct || 0));
+                riskVal.textContent = `${riskPct.toFixed(1)}%`;
+                const isAlert = stats.decision === 'ALERT';
+                const gaugeColor = isAlert ? 'var(--color-alert)' : 'var(--color-safe)';
+                riskGauge.style.background = `conic-gradient(${gaugeColor} ${riskPct * 3.6}deg, rgba(255,255,255,0.08) ${riskPct * 3.6}deg)`;
+                riskStatusLabel.textContent = isAlert ? 'ELEVATED RISK (> α)' : 'NORMAL RISK (≤ α)';
+                riskStatusLabel.style.color = isAlert ? 'var(--color-alert)' : 'var(--color-lime)';
+
+                // Chart Update
+                if (charts.history_labels && lossChart) {
+                    lossChart.data.labels = charts.history_labels;
+                    lossChart.data.datasets[0].data = charts.history_losses;
+                    lossChart.data.datasets[1].data = charts.history_pcts;
+                    lossChart.update('none');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>DECISION // Stochastic Decision Engine (CO1 & CO4)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Fahkwang:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+    <div class="main-content">
+        <canvas id="noise" class="noise"></canvas>
+    </div>
+    <div class="hero__gradient"></div>
+
+    <div class="overflow">
+        <!-- Identical Top Navigation -->
+        <nav class="section is--nav">
+            <div class="container is--nav">
+                <a href="/" class="nav__logo-link">
+                    <span class="nav__logo-text">PACKET.LOSS</span>
+                </a>
+
+                <div class="mav__right">
+                    <div class="nav__menu">
+                        <div class="nav__line"></div>
+                        <a data-color="#f88cd4" href="/" class="nav__link">
+                            <p class="nav__link-text">HOME</p>
+                        </a>
+                        <a data-color="#f88cd4" href="/monitor.html" class="nav__link">
+                            <p class="nav__link-text">MONITOR</p>
+                        </a>
+                        <a data-color="#f88cd4" href="/decision.html" class="nav__link w--current">
+                            <p class="nav__link-text">DECISION</p>
+                        </a>
+                        <a data-color="#f88cd4" href="/model.html" class="nav__link">
+                            <p class="nav__link-text">MODEL</p>
+                        </a>
+                        <a data-color="#f88cd4" href="/validation.html" class="nav__link">
+                            <p class="nav__link-text">VALIDATION</p>
+                        </a>
+                    </div>
+
+                    <div id="nav-sim-badge" class="nav__sim-badge">
+                        <span class="nav__sim-dot"></span>
+                        <span>SIMULATION ON (<strong id="nav-sim-rate">0%</strong>)</span>
+                    </div>
+
+                    <a href="#" class="nav__icon" aria-label="Toggle Navigation Menu">
+                        <div class="nav__icon-line is--1"></div>
+                        <div class="nav__icon-line is--2"></div>
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Fullscreen Glass Overlay Menu -->
+        <div class="nav__overlay">
+            <div class="nav__overlay-menu">
+                <a href="/" class="nav__overlay-link">HOME</a>
+                <a href="/monitor.html" class="nav__overlay-link">MONITOR</a>
+                <a href="/decision.html" class="nav__overlay-link">DECISION</a>
+                <a href="/model.html" class="nav__overlay-link">MODEL</a>
+                <a href="/validation.html" class="nav__overlay-link">VALIDATION</a>
+            </div>
+        </div>
+
+        <main class="container is--inner">
+            <div class="inner-header">
+                <div>
+                    <h1 class="page-title">DECISION & JUSTIFICATION</h1>
+                    <p style="color: rgba(238, 237, 242, 0.65); font-size: 1.15em; margin-top: 0.3em;">
+                        Stochastic hypothesis boundary testing, active routing decisions, and plain-English reports.
+                    </p>
+                </div>
+                <div class="co-chip">CO1 & CO4 // DECISION ENGINE</div>
+            </div>
+
+            <!-- DECISION BANNER (CO1) -->
+            <div class="glass-panel">
+                <div class="decision-badge is--normal" id="decision-badge">
+                    <div style="width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); font-size: 2.2rem; font-weight: bold;" id="decision-icon">
+                        ✓
+                    </div>
+                    <div>
+                        <div style="font-family: var(--font-accent); font-size: 0.85rem; letter-spacing: 0.12em; color: rgba(238,237,242,0.65);">LINE QUALITY CLASSIFICATION</div>
+                        <div class="decision-status-text" id="decision-title">NORMAL</div>
+                        <div style="font-family: var(--font-mono); font-size: 1.1rem; margin-top: 0.4rem; color: #fff;" id="decision-formula">
+                            P(X &gt; 3) = 0.00% ≤ α (0.05)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Numerical Proof Breakdown -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.2rem; margin-top: 2rem;">
+                    <div class="metric-card">
+                        <span class="metric-label">Predicted Risk P(X &gt; k)</span>
+                        <span class="metric-val" id="proof-risk" style="font-size: 1.8rem;">0.00%</span>
+                        <span class="metric-sub">Tail Probability</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Significance α</span>
+                        <span class="metric-val" id="proof-alpha" style="font-size: 1.8rem;">0.05</span>
+                        <span class="metric-sub">Alert Threshold</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Condition Test</span>
+                        <span class="metric-val" id="proof-condition" style="font-size: 1.8rem; color: var(--color-lime);">P(X &gt; k) ≤ α</span>
+                        <span class="metric-sub">Decision Rule</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Network Action</span>
+                        <span class="metric-val" id="proof-action" style="font-size: 1.5rem; color: var(--color-lime);">Maintain Route</span>
+                        <span class="metric-sub">Adaptive QoS</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STATISTICAL JUSTIFICATION (CO4) -->
+            <div class="glass-panel">
+                <h3 class="panel-title">Plain-English Statistical Justification</h3>
+                <div style="background: rgba(92, 49, 255, 0.18); border: 1.5px solid var(--color-violet); border-radius: 16px; padding: 1.8rem; margin-bottom: 1.5rem;">
+                    <p id="justification-paragraph" style="font-size: 1.25em; line-height: 1.6; color: #fff;">
+                        Connecting to real-time telemetry stream...
+                    </p>
+                </div>
+
+                <div class="grid-2col" style="gap: 1.5rem;">
+                    <div class="metric-card" style="padding: 1.5rem;">
+                        <span class="metric-label">Wilson Score Coverage</span>
+                        <p style="font-size: 1rem; color: rgba(238,237,242,0.8); line-height: 1.5; margin-top: 0.5rem;">
+                            Unlike normal Wald approximations that fail when loss rates approach zero, the Wilson score interval provides exact coverage probability even with small sample proportions or skewed network drops.
+                        </p>
+                    </div>
+                    <div class="metric-card" style="padding: 1.5rem;">
+                        <span class="metric-label">Adaptive Throttling Trigger</span>
+                        <p style="font-size: 1rem; color: rgba(238,237,242,0.8); line-height: 1.5; margin-top: 0.5rem;">
+                            When tail loss probability exceeds α, data queues switch from standard FIFO forwarding to proactive rate-limiting or alternate gateway rerouting before congestion collapse occurs.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RECENT ALERTS LOG TABLE -->
+            <div class="glass-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h3 class="panel-title" style="margin-bottom: 0;">Recent Incidents Log</h3>
+                    <span id="alerts-count-badge" class="co-chip" style="font-size: 0.75rem;">0 Incidents</span>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="glass-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Target</th>
+                                <th>Lost / Sent</th>
+                                <th>p̂</th>
+                                <th>Tail Risk P(X &gt; k)</th>
+                                <th>Threshold α</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alerts-tbody">
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: rgba(238,237,242,0.6); padding: 2.5rem;">
+                                    No alerts logged. Network operating stably within nominal statistical boundaries.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="nav.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const decisionBadge = document.getElementById('decision-badge');
+            const decisionTitle = document.getElementById('decision-title');
+            const decisionIcon = document.getElementById('decision-icon');
+            const decisionFormula = document.getElementById('decision-formula');
+
+            const proofRisk = document.getElementById('proof-risk');
+            const proofAlpha = document.getElementById('proof-alpha');
+            const proofCondition = document.getElementById('proof-condition');
+            const proofAction = document.getElementById('proof-action');
+
+            const justificationParagraph = document.getElementById('justification-paragraph');
+            const alertsTbody = document.getElementById('alerts-tbody');
+            const alertsCountBadge = document.getElementById('alerts-count-badge');
+
+            NetTelemetry.subscribe((data) => {
+                if (!data) return;
+                const stats = data.stats || {};
+                const cfg = data.config || {};
+                const alerts = data.alert_log || [];
+
+                const isAlert = stats.decision === 'ALERT';
+                decisionBadge.className = `decision-badge ${isAlert ? 'is--alert' : 'is--normal'}`;
+                decisionTitle.textContent = stats.decision || 'NORMAL';
+                decisionIcon.textContent = isAlert ? '⚠' : '✓';
+                decisionFormula.textContent = `P(X > ${cfg.k || 3}) = ${(stats.p_gt_k_pct || 0).toFixed(2)}% ${isAlert ? '>' : '≤'} α (${(cfg.alpha || 0.05).toFixed(2)})`;
+
+                proofRisk.textContent = `${(stats.p_gt_k_pct || 0).toFixed(2)}%`;
+                proofAlpha.textContent = (cfg.alpha || 0.05).toFixed(2);
+                proofCondition.textContent = isAlert ? 'P(X > k) > α' : 'P(X > k) ≤ α';
+                proofCondition.style.color = isAlert ? 'var(--color-alert)' : 'var(--color-lime)';
+
+                proofAction.textContent = isAlert ? 'Throttle / Reroute' : 'Maintain Route';
+                proofAction.style.color = isAlert ? 'var(--color-alert)' : 'var(--color-lime)';
+
+                if (data.explanation) {
+                    justificationParagraph.textContent = data.explanation;
+                }
+
+                // Render Alerts Log
+                alertsCountBadge.textContent = `${alerts.length} Incidents`;
+                if (alerts.length > 0) {
+                    alertsTbody.innerHTML = alerts.map(a => `
+                        <tr>
+                            <td><code>${a.timestamp}</code></td>
+                            <td><strong>${a.target}</strong></td>
+                            <td>${a.lost} / ${a.sent}</td>
+                            <td>${(a.p_hat * 100).toFixed(2)}%</td>
+                            <td><strong style="color: var(--color-alert);">${(a.p_gt_k * 100).toFixed(2)}%</strong></td>
+                            <td>${a.alpha}</td>
+                            <td><span style="padding: 0.2rem 0.6rem; border-radius: 100vw; background: rgba(234, 56, 76, 0.25); color: #ea384c; font-weight: bold; font-size: 0.8rem;">ALERT</span></td>
+                        </tr>
+                    `).join('');
+                } else {
+                    alertsTbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: rgba(238,237,242,0.6); padding: 2.5rem;">
+                                No alerts logged. Network operating stably within nominal statistical boundaries.
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

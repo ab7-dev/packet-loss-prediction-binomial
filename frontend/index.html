@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>PACKET.LOSS // Binomial Network Loss Predictor</title>
+    <meta name="description" content="Predicting network packet loss in real time using the binomial distribution."/>
+    
+    <!-- Exact Fonts: Fahkwang & DM Sans via Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Fahkwang:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Shared Stylesheet -->
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+    <!-- Grain Noise Overlay -->
+    <div class="main-content">
+        <canvas id="noise" class="noise"></canvas>
+    </div>
+
+    <!-- Purple Corner Glow -->
+    <div class="hero__gradient"></div>
+
+    <div class="overflow">
+        <!-- Exact Top Navigation -->
+        <nav class="section is--nav">
+            <div class="container is--nav">
+                <a href="/" aria-current="page" class="nav__logo-link">
+                    <span class="nav__logo-text">PACKET.LOSS</span>
+                </a>
+
+                <div class="mav__right">
+                    <div class="nav__menu">
+                        <div class="nav__line"></div>
+                        <a data-color="#f88cd4" href="/" class="nav__link w--current">
+                            <p class="nav__link-text">HOME</p>
+                        </a>
+                        <a data-color="#f88cd4" href="/monitor.html" class="nav__link">
+                            <p class="nav__link-text">MONITOR</p>
+                        </a>
+                        <a data-color="#f88cd4" href="/decision.html" class="nav__link">
+                            <p class="nav__link-text">DECISION</p>
+                        </a>
+                        <a data-color="#f88cd4" href="/model.html" class="nav__link">
+                            <p class="nav__link-text">MODEL</p>
+                        </a>
+                        <a data-color="#f88cd4" href="/validation.html" class="nav__link">
+                            <p class="nav__link-text">VALIDATION</p>
+                        </a>
+                    </div>
+
+                    <div id="nav-sim-badge" class="nav__sim-badge">
+                        <span class="nav__sim-dot"></span>
+                        <span>SIMULATION ON (<strong id="nav-sim-rate">0%</strong>)</span>
+                    </div>
+
+                    <a href="#" class="nav__icon" aria-label="Toggle Navigation Menu">
+                        <div class="nav__icon-line is--1"></div>
+                        <div class="nav__icon-line is--2"></div>
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Fullscreen Glass Overlay Menu -->
+        <div class="nav__overlay">
+            <div class="nav__overlay-menu">
+                <a href="/" class="nav__overlay-link">HOME</a>
+                <a href="/monitor.html" class="nav__overlay-link">MONITOR</a>
+                <a href="/decision.html" class="nav__overlay-link">DECISION</a>
+                <a href="/model.html" class="nav__overlay-link">MODEL</a>
+                <a href="/validation.html" class="nav__overlay-link">VALIDATION</a>
+            </div>
+        </div>
+
+        <!-- HERO SECTION -->
+        <section class="section is--hero">
+            <div class="container is--hero">
+                <!-- HERO LEFT -->
+                <div class="hero__left">
+                    <div class="hero__h-contain">
+                        <img src="assets/sparkle.svg" loading="lazy" alt="Sparkle Icon" class="hero__icon"/>
+                        <h1 class="fade-up tricks">PACKET LOSS</h1>
+                        <h1 class="fade-up tricks">PREDICTION IN</h1>
+                        <h1 class="fade-up tricks">DATA NETWORKS</h1>
+                        <h1 class="fade-up tricks">USING BINOMIAL</h1>
+                        <h1 class="fade-up tricks">DISTRIBUTION</h1>
+                    </div>
+
+                    <div class="hero__p-contain">
+                        <p class="is--p1">Predicting network packet loss in real time using<br/></p>
+                    </div>
+                    <div class="hero__p-contain">
+                        <p class="is--p2">binomial probability, statistics and smart alerts.</p>
+                    </div>
+
+                    <a href="/monitor.html" class="hero__button">
+                        <div class="hero__button-t-contain">
+                            <p class="hero__button-text">Start Monitoring</p>
+                        </div>
+                        <div class="hero__button-icon">
+                            <img src="assets/arrow.svg" loading="lazy" alt="Arrow" class="hero__button-arrow"/>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- HERO RIGHT -->
+                <div class="hero__right">
+                    <!-- Iridescent Sphere Video with Radial Vignette -->
+                    <div class="hero__video">
+                        <video autoplay loop muted playsinline data-object-fit="cover">
+                            <source src="assets/sphere.webm" type="video/webm"/>
+                            <source src="assets/sphere.mp4" type="video/mp4"/>
+                        </video>
+                    </div>
+
+                    <!-- 3D Glass Network Packet Monitor Card -->
+                    <div class="hero__card-contain">
+                        <div class="hero__card">
+                            <div class="hero__card-content">
+                                <div class="hero__card-top">
+                                    <span class="hero__card-wordmark">PACKET.LOSS</span>
+                                    <img src="assets/white-sparkle.svg" loading="lazy" alt="" class="hero__card-icon"/>
+                                </div>
+
+                                <!-- Center Mini PMF Bar Chart -->
+                                <div class="hero__card-center" id="card-pmf-container">
+                                    <div class="card-pmf-bar" style="height: 18px;"></div>
+                                    <div class="card-pmf-bar" style="height: 48px;"></div>
+                                    <div class="card-pmf-bar" style="height: 65px;"></div>
+                                    <div class="card-pmf-bar" style="height: 38px;"></div>
+                                    <div class="card-pmf-bar" style="height: 14px;"></div>
+                                    <div class="card-pmf-bar" style="height: 6px;"></div>
+                                </div>
+
+                                <div class="hero__card-bottom">
+                                    <p class="hero__card-text" id="card-telemetry-text">LOSS 0.02 &nbsp;n 50 &nbsp;k 3</p>
+                                    <div class="hero__card-status-wrap">
+                                        <div class="hero__card-dot" id="card-status-dot"></div>
+                                        <img src="assets/white-bar.svg" loading="lazy" alt="" class="hero__card-bar"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="hero__card-shine"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RISK CALCULATOR PREVIEW (Matching CMS pricing preview section) -->
+        <section class="section is--pricing">
+            <div class="container calc">
+                <h2>Risk Calculator preview</h2>
+                <div class="calc__contain">
+                    <!-- Probes Per Window (n) Stepper -->
+                    <div class="contain">
+                        <h3>Probes Per Window (n)</h3>
+                        <div class="concepts__contain">
+                            <button class="concepts__button minus" id="home-n-minus" aria-label="Decrease n"><span class="is--text">-</span></button>
+                            <button class="concepts__button plus" id="home-n-plus" aria-label="Increase n"><span class="is--text">+</span></button>
+                        </div>
+                        <h3 id="home-n-text">50</h3>
+                    </div>
+
+                    <!-- Alert Threshold (k) Stepper -->
+                    <div class="contain">
+                        <h3>Alert Threshold (k)</h3>
+                        <div class="concepts__contain">
+                            <button class="concepts__button minus" id="home-k-minus" aria-label="Decrease k"><span class="is--text">-</span></button>
+                            <button class="concepts__button plus" id="home-k-plus" aria-label="Increase k"><span class="is--text">+</span></button>
+                        </div>
+                        <h3 id="home-k-text">3</h3>
+                    </div>
+
+                    <!-- Simulate Loss Pill Switch -->
+                    <div class="contain">
+                        <h3>Simulate Loss</h3>
+                        <a href="#" class="switch" id="home-sim-toggle" role="switch" aria-checked="false">
+                            <div class="switch__circle"></div>
+                        </a>
+                        <h3 id="home-sim-text">No thanks</h3>
+                    </div>
+
+                    <!-- Total Risk Output Computed Client-Side -->
+                    <div class="contain" style="grid-column: 1 / -1;">
+                        <h3>Predicted Risk P(X &gt; k)</h3>
+                        <h2 id="home-total-risk" class="total">0.0%</h2>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Anime.js CDN for Exact Heading Letter Reveal Animation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/2.0.2/anime.min.js"></script>
+    
+    <!-- Shared Telemetry & Navigation Scripts -->
+    <script src="api.js"></script>
+    <script src="nav.js"></script>
+    
+    <!-- Home Page Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Letter Splitting & Fade-Up Animation
+            const tricksWord = document.getElementsByClassName("tricks");
+            for (let i = 0; i < tricksWord.length; i++) {
+                const wordWrap = tricksWord.item(i);
+                wordWrap.innerHTML = wordWrap.innerHTML.replace(/(^|<\/?[^>]+>|\s+)([^\s<]+)/g, '$1<span class="tricksword">$2</span>');
+            }
+            const tricksLetter = document.getElementsByClassName("tricksword");
+            for (let i = 0; i < tricksLetter.length; i++) {
+                const letterWrap = tricksLetter.item(i);
+                letterWrap.innerHTML = letterWrap.textContent.replace(/\S/g, "<span class='letter'>$&</span>");
+            }
+            const fadeUp = anime.timeline({ loop: false, autoplay: false });
+            fadeUp.add({
+                targets: '.fade-up .letter',
+                translateY: [100, 0],
+                translateZ: 0,
+                opacity: [0, 1],
+                easing: "easeOutExpo",
+                duration: 1400,
+                delay: (el, i) => 250 + 25 * i
+            });
+            fadeUp.play();
+
+            // Client Calculator State
+            let calcN = 50;
+            let calcK = 3;
+            let calcSim = false;
+            let currentP = 0.02;
+
+            const nText = document.getElementById('home-n-text');
+            const kText = document.getElementById('home-k-text');
+            const simText = document.getElementById('home-sim-text');
+            const simToggle = document.getElementById('home-sim-toggle');
+            const totalRisk = document.getElementById('home-total-risk');
+            const cardTelemetry = document.getElementById('card-telemetry-text');
+            const cardStatusDot = document.getElementById('card-status-dot');
+            const pmfBars = document.querySelectorAll('.card-pmf-bar');
+
+            const updateCalc = () => {
+                nText.textContent = calcN;
+                kText.textContent = calcK;
+                simText.textContent = calcSim ? "Active (15%)" : "No thanks";
+                simToggle.classList.toggle('is--active', calcSim);
+
+                const activeP = calcSim ? 0.15 : currentP;
+                const risk = NetTelemetry.computePgtK(calcN, calcK, activeP);
+                const riskPct = (risk * 100).toFixed(1);
+                totalRisk.textContent = `${riskPct}%`;
+            };
+
+            document.getElementById('home-n-plus').addEventListener('click', (e) => {
+                e.preventDefault();
+                calcN = Math.min(200, calcN + 10);
+                updateCalc();
+            });
+
+            document.getElementById('home-n-minus').addEventListener('click', (e) => {
+                e.preventDefault();
+                calcN = Math.max(10, calcN - 10);
+                updateCalc();
+            });
+
+            document.getElementById('home-k-plus').addEventListener('click', (e) => {
+                e.preventDefault();
+                calcK = Math.min(calcN, calcK + 1);
+                updateCalc();
+            });
+
+            document.getElementById('home-k-minus').addEventListener('click', (e) => {
+                e.preventDefault();
+                calcK = Math.max(0, calcK - 1);
+                updateCalc();
+            });
+
+            simToggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                calcSim = !calcSim;
+                updateCalc();
+            });
+
+            // Live Telemetry Subscription
+            NetTelemetry.subscribe((data) => {
+                if (!data) return;
+                const stats = data.stats || {};
+                const cfg = data.config || {};
+                currentP = stats.p_hat || 0.02;
+
+                if (cardTelemetry) {
+                    cardTelemetry.textContent = `LOSS ${(currentP).toFixed(2)}  n ${cfg.n || 50}  k ${cfg.k || 3}`;
+                }
+
+                if (cardStatusDot) {
+                    cardStatusDot.className = `hero__card-dot ${stats.decision === 'ALERT' ? 'is--alert' : ''}`;
+                }
+
+                // Dynamic Mini PMF redraw on card
+                const chartData = data.charts || {};
+                const pmfValues = chartData.pmf_theoretical || [0.36, 0.38, 0.19, 0.05, 0.01];
+                pmfBars.forEach((bar, index) => {
+                    const prob = pmfValues[index] !== undefined ? pmfValues[index] : 0.05;
+                    const heightPx = Math.max(4, Math.min(65, Math.round(prob * 140)));
+                    bar.style.height = `${heightPx}px`;
+                });
+
+                updateCalc();
+            });
+        });
+    </script>
+</body>
+</html>

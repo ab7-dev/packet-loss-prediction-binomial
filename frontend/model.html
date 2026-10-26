@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>MODEL // Theoretical Binomial Overlay (CO2)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Fahkwang:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX CDN for Beautiful Mathematical Typography -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+    <div class="main-content">
+        <canvas id="noise" class="noise"></canvas>
+    </div>
+    <div class="hero__gradient"></div>
+
+    <div class="overflow">
+        <!-- Identical Top Navigation -->
+        <nav class="section is--nav">
+            <div class="container is--nav">
+                <a href="/" class="nav__logo-link">
+                    <span class="nav__logo-text">PACKET.LOSS</span>
+                </a>
+
+                <div class="mav__right">
+                    <div class="nav__menu">
+                        <div class="nav__line"></div>
+                        <a data-color="#f88cd4" href="/" class="nav__link">
+                            <p class="nav__link-text">HOME</p>
+                        </a>
+                        <a data-color="#f88cd4" href="/monitor.html" class="nav__link">
+                            <p class="nav__link-text">MONITOR</p>
+                        </a>
+                        <a data-color="#f88cd4" href="/decision.html" class="nav__link">
+                            <p class="nav__link-text">DECISION</p>
+                        </a>
+                        <a data-color="#f88cd4" href="/model.html" class="nav__link w--current">
+                            <p class="nav__link-text">MODEL</p>
+                        </a>
+                        <a data-color="#f88cd4" href="/validation.html" class="nav__link">
+                            <p class="nav__link-text">VALIDATION</p>
+                        </a>
+                    </div>
+
+                    <div id="nav-sim-badge" class="nav__sim-badge">
+                        <span class="nav__sim-dot"></span>
+                        <span>SIMULATION ON (<strong id="nav-sim-rate">0%</strong>)</span>
+                    </div>
+
+                    <a href="#" class="nav__icon" aria-label="Toggle Navigation Menu">
+                        <div class="nav__icon-line is--1"></div>
+                        <div class="nav__icon-line is--2"></div>
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Fullscreen Glass Overlay Menu -->
+        <div class="nav__overlay">
+            <div class="nav__overlay-menu">
+                <a href="/" class="nav__overlay-link">HOME</a>
+                <a href="/monitor.html" class="nav__overlay-link">MONITOR</a>
+                <a href="/decision.html" class="nav__overlay-link">DECISION</a>
+                <a href="/model.html" class="nav__overlay-link">MODEL</a>
+                <a href="/validation.html" class="nav__overlay-link">VALIDATION</a>
+            </div>
+        </div>
+
+        <main class="container is--inner">
+            <div class="inner-header">
+                <div>
+                    <h1 class="page-title">THEORETICAL MODEL OVERLAY</h1>
+                    <p style="color: rgba(238, 237, 242, 0.65); font-size: 1.15em; margin-top: 0.3em;">
+                        Comparison of empirical packet drop frequencies against the theoretical Binomial Probability Mass Function.
+                    </p>
+                </div>
+                <div class="co-chip">CO2 // THEORETICAL MODEL</div>
+            </div>
+
+            <!-- MOMENTS GRID -->
+            <div class="grid-metrics" style="margin-bottom: 2.2rem;">
+                <div class="glass-panel" style="margin-bottom: 0;">
+                    <span class="metric-label">Theoretical Mean (μ)</span>
+                    <div class="metric-val" id="model-mean" style="color: var(--color-lime);">0.00</div>
+                    <div class="katex-formula" id="formula-mean"></div>
+                </div>
+
+                <div class="glass-panel" style="margin-bottom: 0;">
+                    <span class="metric-label">Variance (σ²)</span>
+                    <div class="metric-val" id="model-variance" style="color: var(--color-pink);">0.00</div>
+                    <div class="katex-formula" id="formula-variance"></div>
+                </div>
+
+                <div class="glass-panel" style="margin-bottom: 0;">
+                    <span class="metric-label">Standard Deviation (σ)</span>
+                    <div class="metric-val" id="model-std" style="color: #fff;">0.00</div>
+                    <div class="katex-formula" id="formula-std"></div>
+                </div>
+
+                <div class="glass-panel" style="margin-bottom: 0;">
+                    <span class="metric-label">Tail Risk P(X ≥ k)</span>
+                    <div class="metric-val" id="model-gte" style="color: var(--color-lime);">0.00%</div>
+                    <div class="katex-formula" id="formula-tail"></div>
+                </div>
+            </div>
+
+            <!-- DUAL OVERLAY CHART -->
+            <div class="glass-panel">
+                <h3 class="panel-title">Binomial(n, p̂) Theoretical PMF vs Observed Window Loss</h3>
+                <div style="position: relative; height: 380px; width: 100%;">
+                    <canvas id="pmfChart"></canvas>
+                </div>
+            </div>
+
+            <!-- MATHEMATICAL FORMULATION CARD (KATEX FORMATTED) -->
+            <div class="glass-panel">
+                <h3 class="panel-title">Probability Mass Function Mathematical Specification</h3>
+                <div style="background: rgba(13, 6, 40, 0.7); border: 1px solid rgba(238, 237, 242, 0.15); border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; text-align: center;">
+                    <div id="katex-pmf-main" style="font-size: 1.5rem; color: #fff; margin-bottom: 1rem;"></div>
+                    <p style="font-size: 1.05rem; color: rgba(238,237,242,0.8); max-width: 800px; margin: 0 auto; line-height: 1.6;">
+                        Where <span id="katex-inline-x"></span> is the integer number of lost packets, <span id="katex-inline-n"></span> is the probe sample size per window, and <span id="katex-inline-p"></span> is the maximum likelihood Bernoulli parameter estimated over sliding window observations.
+                    </p>
+                </div>
+
+                <div class="grid-2col">
+                    <div class="metric-card">
+                        <span class="metric-label">Bernoulli Trials Independence</span>
+                        <p style="font-size: 0.95rem; color: rgba(238,237,242,0.7); line-height: 1.5; margin-top: 0.5rem;">
+                            The binomial formulation models packet transmission as independent Bernoulli trials where every probe has an identical loss probability without memory of previous packets.
+                        </p>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Cumulative Tail Function</span>
+                        <p style="font-size: 0.95rem; color: rgba(238,237,242,0.7); line-height: 1.5; margin-top: 0.5rem;">
+                            The survivorship function calculates the cumulative probability of dropping more than k packets, providing actionable predictive foresight before real traffic congestion occurs.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="nav.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // KaTeX Formula Rendering (Guaranteed no raw LaTeX visible)
+            katex.render("\\mu = n \\cdot \\hat{p}", document.getElementById('formula-mean'));
+            katex.render("\\sigma^2 = n \\cdot \\hat{p} (1 - \\hat{p})", document.getElementById('formula-variance'));
+            katex.render("\\sigma = \\sqrt{\\text{Var}(X)}", document.getElementById('formula-std'));
+            katex.render("P(X \\ge k) = \\sum_{x=k}^n P(X = x)", document.getElementById('formula-tail'));
+            katex.render("P(X = x) = \\binom{n}{x} \\hat{p}^x (1 - \\hat{p})^{n - x}", document.getElementById('katex-pmf-main'), { displayMode: true });
+            katex.render("x \\in \\{0, 1, \\dots, n\\}", document.getElementById('katex-inline-x'));
+            katex.render("n", document.getElementById('katex-inline-n'));
+            katex.render("\\hat{p}", document.getElementById('katex-inline-p'));
+
+            // Chart.js Setup
+            const ctx = document.getElementById('pmfChart').getContext('2d');
+            const pmfChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Empirical Observed Freq',
+                            data: [],
+                            backgroundColor: 'rgba(248, 140, 212, 0.55)',
+                            borderColor: '#f88cd4',
+                            borderWidth: 1.5,
+                            borderRadius: 6,
+                            order: 2
+                        },
+                        {
+                            type: 'line',
+                            label: 'Theoretical Binomial PMF',
+                            data: [],
+                            borderColor: '#def141',
+                            backgroundColor: 'rgba(222, 241, 65, 0.15)',
+                            borderWidth: 2.5,
+                            pointBackgroundColor: '#def141',
+                            pointRadius: 4,
+                            fill: true,
+                            tension: 0.35,
+                            order: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.06)' },
+                            ticks: { color: '#eeedf2' },
+                            title: { display: true, text: 'Dropped Packets (x)', color: '#eeedf2' }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.06)' },
+                            ticks: { color: '#eeedf2' },
+                            title: { display: true, text: 'Probability P(X = x)', color: '#eeedf2' }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#eeedf2', font: { family: 'DM Sans' } } }
+                    }
+                }
+            });
+
+            const modelMean = document.getElementById('model-mean');
+            const modelVariance = document.getElementById('model-variance');
+            const modelStd = document.getElementById('model-std');
+            const modelGte = document.getElementById('model-gte');
+
+            NetTelemetry.subscribe((data) => {
+                if (!data) return;
+                const stats = data.stats || {};
+                const charts = data.charts || {};
+
+                modelMean.textContent = (stats.mean || 0).toFixed(2);
+                modelVariance.textContent = (stats.variance || 0).toFixed(3);
+                modelStd.textContent = (stats.std_dev || 0).toFixed(3);
+                modelGte.textContent = `${(stats.p_gte_k_pct || 0).toFixed(2)}%`;
+
+                if (charts.pmf_labels && pmfChart) {
+                    pmfChart.data.labels = charts.pmf_labels;
+                    pmfChart.data.datasets[0].data = charts.pmf_observed;
+                    pmfChart.data.datasets[1].data = charts.pmf_theoretical;
+                    pmfChart.update('none');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

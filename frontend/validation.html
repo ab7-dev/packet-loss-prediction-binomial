@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>VALIDATION // Chi-Square Goodness-of-Fit (CO5)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Fahkwang:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+    <div class="main-content">
+        <canvas id="noise" class="noise"></canvas>
+    </div>
+    <div class="hero__gradient"></div>
+
+    <div class="overflow">
+        <!-- Identical Top Navigation -->
+        <nav class="section is--nav">
+            <div class="container is--nav">
+                <a href="/" class="nav__logo-link">
+                    <span class="nav__logo-text">PACKET.LOSS</span>
+                </a>
+
+                <div class="mav__right">
+                    <div class="nav__menu">
+                        <div class="nav__line"></div>
+                        <a data-color="#f88cd4" href="/" class="nav__link">
+                            <p class="nav__link-text">HOME</p>
+                        </a>
+                        <a data-color="#f88cd4" href="/monitor.html" class="nav__link">
+                            <p class="nav__link-text">MONITOR</p>
+                        </a>
+                        <a data-color="#f88cd4" href="/decision.html" class="nav__link">
+                            <p class="nav__link-text">DECISION</p>
+                        </a>
+                        <a data-color="#f88cd4" href="/model.html" class="nav__link">
+                            <p class="nav__link-text">MODEL</p>
+                        </a>
+                        <a data-color="#f88cd4" href="/validation.html" class="nav__link w--current">
+                            <p class="nav__link-text">VALIDATION</p>
+                        </a>
+                    </div>
+
+                    <div id="nav-sim-badge" class="nav__sim-badge">
+                        <span class="nav__sim-dot"></span>
+                        <span>SIMULATION ON (<strong id="nav-sim-rate">0%</strong>)</span>
+                    </div>
+
+                    <a href="#" class="nav__icon" aria-label="Toggle Navigation Menu">
+                        <div class="nav__icon-line is--1"></div>
+                        <div class="nav__icon-line is--2"></div>
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Fullscreen Glass Overlay Menu -->
+        <div class="nav__overlay">
+            <div class="nav__overlay-menu">
+                <a href="/" class="nav__overlay-link">HOME</a>
+                <a href="/monitor.html" class="nav__overlay-link">MONITOR</a>
+                <a href="/decision.html" class="nav__overlay-link">DECISION</a>
+                <a href="/model.html" class="nav__overlay-link">MODEL</a>
+                <a href="/validation.html" class="nav__overlay-link">VALIDATION</a>
+            </div>
+        </div>
+
+        <main class="container is--inner">
+            <div class="inner-header">
+                <div>
+                    <h1 class="page-title">MODEL VALIDATION</h1>
+                    <p style="color: rgba(238, 237, 242, 0.65); font-size: 1.15em; margin-top: 0.3em;">
+                        Chi-Square Goodness-of-Fit hypothesis testing and multi-route comparative safety analysis.
+                    </p>
+                </div>
+                <div class="co-chip">CO5 // MODEL VALIDATION</div>
+            </div>
+
+            <!-- CHI-SQUARE RESULTS CARD -->
+            <div class="glass-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 1rem;">
+                    <h3 class="panel-title" style="margin-bottom: 0;">Chi-Square Goodness-of-Fit Test (α = 0.05)</h3>
+                    <span id="chi-status-tag" class="co-chip" style="font-size: 0.8rem; background: rgba(222, 241, 65, 0.15); border-color: var(--color-lime); color: var(--color-lime);">Collecting Data (0/30)</span>
+                </div>
+
+                <!-- Progress Bar for Quorum -->
+                <div style="margin-bottom: 1.8rem;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.9rem; color: rgba(238,237,242,0.7); margin-bottom: 0.4rem;">
+                        <span>Sample Quorum Progress (Minimum 30 Windows Required):</span>
+                        <strong id="quorum-text" style="font-family: var(--font-mono); color: #fff;">0 / 30 Windows</strong>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="quorum-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- 4 Metrics Grid -->
+                <div class="grid-metrics">
+                    <div class="metric-card">
+                        <span class="metric-label">Chi-Square Statistic (χ²)</span>
+                        <div class="metric-val" id="chi-stat">--</div>
+                        <span class="metric-sub">Sum of Residuals</span>
+                    </div>
+
+                    <div class="metric-card">
+                        <span class="metric-label">Degrees of Freedom (df)</span>
+                        <div class="metric-val" id="chi-df">--</div>
+                        <span class="metric-sub">Bins - 1 - 1</span>
+                    </div>
+
+                    <div class="metric-card">
+                        <span class="metric-label">p-Value</span>
+                        <div class="metric-val" id="chi-pval">--</div>
+                        <span class="metric-sub">Tail Probability</span>
+                    </div>
+
+                    <div class="metric-card">
+                        <span class="metric-label">Validation Conclusion</span>
+                        <div class="metric-val" id="chi-conclusion" style="font-size: 1.4rem; color: rgba(238,237,242,0.5);">COLLECTING DATA</div>
+                        <span class="metric-sub">Significance α = 0.05</span>
+                    </div>
+                </div>
+
+                <!-- Explanatory Insight -->
+                <div style="margin-top: 1.8rem; padding: 1.4rem; border-radius: 14px; background: rgba(28, 28, 28, 0.5); border: 1px solid rgba(238, 237, 242, 0.1);">
+                    <p id="chi-explanation-text" style="font-size: 1rem; color: rgba(238,237,242,0.85); line-height: 1.6;">
+                        Chi-square test evaluates the null hypothesis H₀: window loss counts follow Binomial(n, p̂). Bins with expected frequency E &lt; 5 are merged dynamically to ensure valid asymptotic distribution properties.
+                    </p>
+                </div>
+            </div>
+
+            <!-- BURSTY LOSS ENGINEERING NOTE -->
+            <div class="glass-panel">
+                <h3 class="panel-title">Engineering Insight: Bursty Real-World Network Losses</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <p style="font-size: 1.05rem; line-height: 1.6; color: #fff; margin-bottom: 1rem;">
+                            <strong>Why does real-world network packet loss frequently cause rejection of the Binomial model?</strong>
+                        </p>
+                        <p style="font-size: 0.95rem; line-height: 1.6; color: rgba(238,237,242,0.75);">
+                            The Binomial distribution relies on the fundamental assumption that packet drop occurrences are <em>memoryless, independent Bernoulli trials</em>.
+                        </p>
+                    </div>
+                    <div style="background: rgba(248, 140, 212, 0.1); border: 1.2px solid var(--color-pink); border-radius: 16px; padding: 1.5rem;">
+                        <ul style="padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.9rem; color: #fff;">
+                            <li><strong>Queue Saturation (Tail Drop):</strong> When an intermediate router buffer is filled, entire bursts of consecutive packets are dropped simultaneously.</li>
+                            <li><strong>Fading Channels (Gilbert-Elliott):</strong> Wireless and cellular links transition between Good and Bad Markovian channel states.</li>
+                            <li><strong>Microbursts & Congestion:</strong> Real loss events are correlated in time, producing higher variance than the theoretical binomial variance np(1-p).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OBSERVED VS EXPECTED CONTINGENCY TABLE -->
+            <div class="glass-panel" id="contingency-panel" style="display: none;">
+                <h3 class="panel-title">Observed vs Expected Contingency Bins (Cochran Criterion: E ≥ 5)</h3>
+                <div style="overflow-x: auto;">
+                    <table class="glass-table">
+                        <thead>
+                            <tr>
+                                <th>Loss Bin Range</th>
+                                <th>Expected Frequency (E)</th>
+                                <th>Observed Frequency (O)</th>
+                                <th>Residual (O - E)</th>
+                                <th>Cell Contribution (O - E)² / E</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contingency-tbody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- MULTI-ROUTE COMPARISON TABLE -->
+            <div class="glass-panel">
+                <div class="card-header-bar">
+                    <h3 class="panel-title" style="margin-bottom: 0;">Multi-Target Route Telemetry & Safest Route Selection</h3>
+                    <a href="/export" download="packet_loss_history.csv" class="hero__button is--secondary" id="btn-val-export-csv" aria-label="Export History CSV">
+                        <div class="hero__button-t-contain">
+                            <span class="hero__button-text">EXPORT CSV</span>
+                        </div>
+                        <div class="hero__button-icon">
+                            <svg class="btn-svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#1c1c1c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 3v13M5 10l7 7 7-7M3 21h18"/>
+                            </svg>
+                        </div>
+                    </a>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="glass-table">
+                        <thead>
+                            <tr>
+                                <th>Target Host</th>
+                                <th>Active Line</th>
+                                <th>Packets Sent</th>
+                                <th>Packets Lost</th>
+                                <th>Estimated p̂</th>
+                                <th>Tail Risk P(X &gt; k)</th>
+                                <th>State</th>
+                                <th>Route Quality</th>
+                            </tr>
+                        </thead>
+                        <tbody id="routes-tbody">
+                            <tr>
+                                <td colspan="8" style="text-align: center; color: rgba(238,237,242,0.6); padding: 2.5rem;">
+                                    Sampling comparative route telemetry...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="nav.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const chiStatusTag = document.getElementById('chi-status-tag');
+            const quorumText = document.getElementById('quorum-text');
+            const quorumFill = document.getElementById('quorum-fill');
+            const chiStat = document.getElementById('chi-stat');
+            const chiDf = document.getElementById('chi-df');
+            const chiPval = document.getElementById('chi-pval');
+            const chiConclusion = document.getElementById('chi-conclusion');
+            const chiExplanationText = document.getElementById('chi-explanation-text');
+
+            const contingencyPanel = document.getElementById('contingency-panel');
+            const contingencyTbody = document.getElementById('contingency-tbody');
+            const routesTbody = document.getElementById('routes-tbody');
+
+            NetTelemetry.subscribe((data) => {
+                if (!data) return;
+                const chi = data.chi_square || {};
+                const targets = data.target_comparison || [];
+                const count = chi.windows_count || 0;
+                const required = chi.min_required || 30;
+
+                quorumText.textContent = `${count} / ${required} Windows`;
+                const pct = Math.min(100, Math.round((count / required) * 100));
+                quorumFill.style.width = `${pct}%`;
+
+                if (chi.status === 'complete') {
+                    chiStatusTag.textContent = 'VALIDATION COMPLETE';
+                    chiStatusTag.style.borderColor = 'var(--color-lime)';
+                    chiStatusTag.style.color = 'var(--color-lime)';
+
+                    chiStat.textContent = chi.statistic !== null ? chi.statistic.toFixed(4) : '--';
+                    chiDf.textContent = chi.df !== null ? chi.df : '--';
+                    chiPval.textContent = chi.p_value !== null ? chi.p_value.toFixed(4) : '--';
+
+                    const fits = chi.conclusion === 'fits binomial model';
+                    chiConclusion.textContent = fits ? 'FITS BINOMIAL' : 'DOES NOT FIT';
+                    chiConclusion.style.color = fits ? 'var(--color-lime)' : 'var(--color-pink)';
+
+                    if (chi.explanation) chiExplanationText.textContent = chi.explanation;
+
+                    // Render Contingency Table
+                    if (chi.merged_bins && chi.merged_bins.length > 0) {
+                        contingencyPanel.style.display = 'block';
+                        contingencyTbody.innerHTML = chi.merged_bins.map(b => {
+                            const residual = (b.observed - b.expected).toFixed(2);
+                            const cellChi = (((b.observed - b.expected) ** 2) / b.expected).toFixed(3);
+                            return `
+                                <tr>
+                                    <td><strong>Bin [${b.label}]</strong></td>
+                                    <td>${b.expected.toFixed(2)}</td>
+                                    <td>${b.observed}</td>
+                                    <td>${residual}</td>
+                                    <td><code>${cellChi}</code></td>
+                                </tr>
+                            `;
+                        }).join('');
+                    }
+                } else {
+                    chiStatusTag.textContent = `COLLECTING DATA (${count}/${required})`;
+                    chiStat.textContent = '--';
+                    chiDf.textContent = '--';
+                    chiPval.textContent = '--';
+                    chiConclusion.textContent = 'COLLECTING DATA';
+                    chiConclusion.style.color = 'rgba(238,237,242,0.5)';
+                    contingencyPanel.style.display = 'none';
+                }
+
+                // Render Route Comparison Table
+                if (targets.length > 0) {
+                    routesTbody.innerHTML = targets.map(t => {
+                        const isSafest = t.is_safest;
+                        const isActive = t.is_active;
+                        return `
+                            <tr>
+                                <td><strong>${t.target}</strong></td>
+                                <td>${isActive ? '<span style="padding: 0.2rem 0.6rem; border-radius: 100vw; background: rgba(92, 49, 255, 0.4); color: #fff; font-size: 0.75rem; font-weight: bold;">ACTIVE</span>' : '<button class="quick-sim-btn" onclick="NetTelemetry.sendConfig({target:\'' + t.target + '\'})">SWITCH</button>'}</td>
+                                <td>${t.total_sent}</td>
+                                <td>${t.total_lost}</td>
+                                <td>${t.p_hat.toFixed(2)}%</td>
+                                <td><strong style="color: ${t.risk_pct > 5 ? 'var(--color-alert)' : 'var(--color-lime)'};">${t.risk_pct.toFixed(2)}%</strong></td>
+                                <td><span style="color: ${t.decision === 'ALERT' ? 'var(--color-alert)' : 'var(--color-lime)'}; font-weight: bold;">${t.status}</span></td>
+                                <td>${isSafest ? '<span style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.7rem; border-radius: 100vw; background: rgba(222, 241, 65, 0.2); border: 1px solid var(--color-lime); color: var(--color-lime); font-size: 0.8rem; font-weight: bold;">★ SAFEST ROUTE</span>' : '<span style="color: rgba(238,237,242,0.4);">Alternate</span>'}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
